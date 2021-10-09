@@ -1,0 +1,4 @@
+.env
+node_modules
+discordtoken.txt
+package-lock.json
