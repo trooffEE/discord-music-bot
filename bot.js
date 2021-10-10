@@ -65,14 +65,13 @@ bot.on('message', async (message) => {
           title: spotifyData.name,
         }
 
-        youtubeSearch(`${song.author} ${song.title}`, youTubeOptions, (err, results) => {
+        youtubeSearch(`${song.author} ${song.title}`, youTubeOptions, (err, youtubeVideoList) => {
           if (err) {
             console.log(err)
             return
           }
 
-          const ytLink = results[0].link
-          server.queue.push(ytLink)
+          server.queue.push(youtubeVideoList[0].link)
 
           if (!message.guild.voiceConnection) {
             voiceChannel.join().then((connection) => play(connection, message))
