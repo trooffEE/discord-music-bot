@@ -4,6 +4,7 @@ require('dotenv').config()
 const ytdl = require('ytdl-core') // Library for downloading video on YouTube
 const { getData } = require('spotify-url-info') // Method for getting very basic data from Spotify song
 const youtubeSearch = require('youtube-search') // Library for searching video on YouTube using song title
+const axios = require('axios');
 const Discord = require('discord.js')
 const bot = new Discord.Client()
 const { MessageAttachment } = require('discord.js')
@@ -29,6 +30,12 @@ bot.on('ready', () => {
 bot.login(TOKEN)
 
 // Section: Helper-функции
+function notifyError(error) {
+  console.log('================================================')
+  console.log(error)
+  console.log('================================================')
+}
+
 function sendMusicLogMessage(message) {
   bot.channels.cache
     .get(`${musicLog}`)
@@ -43,9 +50,9 @@ function sendMainChatMessage(messageDiscordObject, message, attachment) {// Note
   }
 }
 
-function sendSelfDestroyMessage(messageDiscordObject, message, attachment) {
+function sendSelfDestroyMessage(messageDiscordObject, message, attachment, delay = '3000') {
   sendMainChatMessage(messageDiscordObject, message, attachment)
-    .then((msg) => msg.delete({ timeout: '3000' }))
+    .then((msg) => msg.delete({ timeout: delay }))
 }
 
 async function play(connection, message) {
@@ -77,7 +84,7 @@ async function play(connection, message) {
 
     } catch(error) {
 
-      console.log(error, 'Ошибка связанная с получением информации по ссылке: ' + link)
+      notifyError(error)
       sendMusicLogMessage(`:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
       
     }
@@ -109,12 +116,71 @@ async function play(connection, message) {
   })
 }
 
+function transformNumber(numbers) {
+  return numbers.forEach((num, idx) => {
+    if (idx % 3 === 0) {
+      numbers.splice(index, 0, ' ')
+    }
+  })
+}
+
 // Section: Слушатель сообщений
 bot.on('message', async (message) => {
   const voiceChannel = message.member.voice.channel || { id: 0 }
   const args = message.content.split(' ')
 
-  switch (args[0]) {
+  switch (args[0].toLowerCase()) {
+
+    case '!corona':
+      message.delete()
+      // Note: https://covid-19-data.unstatshub.org/datasets/cases-country/api
+      axios.get("https://services1.arcgis.com/0MSEUqKaxRlEPj5g/arcgis/rest/services/ncov_cases2_v1/FeatureServer/2/query?where=Country_Region%20%3D%20'ALBANIA'&outFields=Country_Region,Confirmed,Deaths&outSR=4326&f=json")
+        .then(({ data }) => {
+          const albania = data.features[0]
+
+          const deaths = albania.attributes.Deaths
+          const infected = albania.attributes.Confirmed
+          const text = `:flag_al: Албанский коронавирус :flag_al:\nЗаражено: ${infected}\nПомэрло: ${deaths}`
+
+          sendSelfDestroyMessage(message, text, null, 60_000)
+        })
+        .catch(notifyError)
+      break
+
+    case '!corona-ru':
+      message.delete()
+      // Note: https://apify.com/krakorj/covid-russia
+      axios.get('https://api.apify.com/v2/key-value-stores/1brJ0NLbQaJKPTWMO/records/LATEST')
+        .then(({ data }) => {
+          const kemerovo = data.infectedByRegion.find(region => region.isoCode === 'RU-KEM')
+          const spb = data.infectedByRegion.find(region => region.isoCode === 'RU-SPE')
+          const krasnoyarsk = data.infectedByRegion.find(region => region.isoCode === 'RU-KYA')
+          const yakutsk = data.infectedByRegion.find(region => region.isoCode === 'RU-SA')
+          const regions = [kemerovo, spb, krasnoyarsk, yakutsk]
+
+          const textAboutRegions = regions.map(region => {
+            return `\n**${region.region}**:` + 
+            `\nЗаражено: ${region.infected} человек` + 
+            `\nВыздоровело: ${region.recovered} человек` + 
+            `\nПогибло: ${region.deceased} человек`
+          }).join('\n')
+
+          const textAboutRussia = `:flag_ru: **Русский коронавирус** :flag_ru:` +
+            `\nОбщая статистика по России:\n` + 
+            `\nЗаражено: ${data.infected} человек` + 
+            `\nПрошли тест: ${data.tested} человек` + 
+            `\nВыздоровело: ${data.recovered} человек` + 
+            `\nПогибло: ${data.deceased} человек\n`
+
+          sendSelfDestroyMessage(message, 
+            textAboutRussia + textAboutRegions,
+            null,
+            60_000
+          )
+        })
+        .catch(notifyError)
+      break
+
     case '!play':
       message.delete()
       let link = args[1]
@@ -153,7 +219,7 @@ bot.on('message', async (message) => {
 
         youtubeSearch(`${song.author} ${song.title}`, youTubeOptions, (err, youtubeVideoList) => {
           if (err) {
-            console.log(err)
+            notifyError(err)
             return
           }
 
