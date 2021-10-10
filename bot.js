@@ -17,135 +17,26 @@ const youTubeOptions = {
   key: TOKEN_YT,
 }
 
-// Discord needed data
 const server
 let servers = {}
-
-// Note: нужно избавиться от костылика в виде isSkipping
 let repeat = false, isSkipping = false
 
-bot.on('message', async (message) => {
-  const voiceChannel = message.member.voice.channel || { id: 0 }
-  const args = message.content.split(' ')
-
-  switch (args[0]) {
-    case '!play':
-      message.delete()
-      let link = args[1]
-      let repeat = args[2] === 'repeat'
-
-      if (!link) {
-        sendSelfDestroyMessage(message, 'Необходимо указать ссылку вторым аргументом после "!play"')
-        return
-      }
-
-      if (!voiceChannel) {
-        sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
-        return
-      }
-
-      if (voiceChannel.id !== musicChannelID) {
-        sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
-        return
-      }
-
-      if (!servers[message.guild.id]) {
-        servers[message.guild.id] = {
-          queue: [],
-        }
-      }
-
-      server = servers[message.guild.id]
-
-      // if provided link is Spotify track
-      if (link.startsWith(spotifyURL)) {
-        let spotifyData = await getData('https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas')
-        const song = {
-          author: spotifyData.artists[0].name,
-          title: spotifyData.name,
-        }
-
-        youtubeSearch(`${song.author} ${song.title}`, youTubeOptions, (err, youtubeVideoList) => {
-          if (err) {
-            console.log(err)
-            return
-          }
-
-          server.queue.push(youtubeVideoList[0].link)
-
-          if (!message.guild.voiceConnection) {
-            voiceChannel.join().then((connection) => play(connection, message))
-          }
-        })
-      // if link is YouTube video 
-      } else {
-        server.queue.push(link)
-
-        if (!message.guild.voiceConnection) {
-          voiceChannel.join().then((connection) => play(connection, message))
-        }
-      }
-      break
-
-    case '!pause':
-      message.delete()
-      server = servers[message.guild.id]
-      if (server.dispatcher) server.dispatcher.pause()
-      break
-
-    case '!resume':
-      message.delete()
-      server = servers[message.guild.id]
-      if (server.dispatcher) server.dispatcher.resume()
-      break
-
-    case '!skip':
-      message.delete()
-      server = servers[message.guild.id]
-      if (server.dispatcher) {
-        server.dispatcher.end()
-        isSkipping = true
-      }
-      break
-
-    case '!stop':
-      message.delete()
-      server = servers[message.guild.id]
-
-      if (message.guild.voice.connection) {
-        server.queue = []
-
-        server.dispatcher.end()
-        console.log('\nОчистил очередь!')
-      }
-
-      if (message.guild.connection) message.guild.voiceConnection.disconnect()
-      break
-
-    case 'vlad':
-    case 'pasha':
-      message.delete()
-      const attachment = new MessageAttachment(`./images/${args[0]}.jpg`)
-      sendMainChatMessage(message, 'Я крутой', attachment)
-      break
-  }
-})
-
+// Section: Бот - инициализация
 bot.on('ready', () => {
   console.log('Бот инициализировался!')
 })
 
 bot.login(TOKEN)
 
+// Section: Helper-функции
 function sendMusicLogMessage(message) {
   bot.channels.cache
     .get(`${musicLog}`)
     .send(message)
 }
 
-// Да да почему изначально не писал на нормальном языке.... вот тебе и 
-// messageDiscordObject
-function sendMainChatMessage(messageDiscordObject, message, attachment) {
+
+function sendMainChatMessage(messageDiscordObject, message, attachment) {// Note: Переписать на TypeScript
   if (!attachment) {
     return messageDiscordObject.channel.send(message)
   } else {
@@ -218,3 +109,111 @@ async function play(connection, message) {
     }
   })
 }
+
+// Section: Слушатель сообщений
+bot.on('message', async (message) => {
+  const voiceChannel = message.member.voice.channel || { id: 0 }
+  const args = message.content.split(' ')
+
+  switch (args[0]) {
+    case '!play':
+      message.delete()
+      let link = args[1]
+      let repeat = args[2] === 'repeat'
+
+      if (!link) {
+        sendSelfDestroyMessage(message, 'Необходимо указать ссылку вторым аргументом после "!play"')
+        return
+      }
+
+      if (!voiceChannel) {
+        sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
+        return
+      }
+
+      if (voiceChannel.id !== musicChannelID) {
+        sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
+        return
+      }
+
+      if (!servers[message.guild.id]) {
+        servers[message.guild.id] = {
+          queue: [],
+        }
+      }
+
+      server = servers[message.guild.id]
+
+      // CASE: Spotify link
+      if (link.startsWith(spotifyURL)) {
+        let spotifyData = await getData('https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas')
+        const song = {
+          author: spotifyData.artists[0].name,
+          title: spotifyData.name,
+        }
+
+        youtubeSearch(`${song.author} ${song.title}`, youTubeOptions, (err, youtubeVideoList) => {
+          if (err) {
+            console.log(err)
+            return
+          }
+
+          server.queue.push(youtubeVideoList[0].link)
+
+          if (!message.guild.voiceConnection) {
+            voiceChannel.join().then((connection) => play(connection, message))
+          }
+        })
+      // CASE: YouTube link 
+      } else {
+        server.queue.push(link)
+
+        if (!message.guild.voiceConnection) {
+          voiceChannel.join().then((connection) => play(connection, message))
+        }
+      }
+      break
+
+    case '!pause':
+      message.delete()
+      server = servers[message.guild.id]
+      if (server.dispatcher) server.dispatcher.pause()
+      break
+
+    case '!resume':
+      message.delete()
+      server = servers[message.guild.id]
+      if (server.dispatcher) server.dispatcher.resume()
+      break
+
+    case '!skip':
+      message.delete()
+      server = servers[message.guild.id]
+      if (server.dispatcher) {
+        server.dispatcher.end()
+        isSkipping = true
+      }
+      break
+
+    case '!stop':
+      message.delete()
+      server = servers[message.guild.id]
+
+      if (message.guild.voice.connection) {
+        server.queue = []
+
+        server.dispatcher.end()
+        console.log('\nОчистил очередь!')
+      }
+
+      if (message.guild.connection) message.guild.voiceConnection.disconnect()
+      break
+
+    case 'vlad':
+    case 'pasha':
+      message.delete()
+      const attachment = new MessageAttachment(`./images/${args[0]}.jpg`)
+      sendMainChatMessage(message, 'Я крутой', attachment)
+      break
+  }
+})
