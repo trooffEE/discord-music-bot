@@ -212,7 +212,12 @@ bot.on('message', async (message) => {
 
       // CASE: Spotify link
       if (link.startsWith(spotifyURL)) {
-        let spotifyData = await getData('https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas')
+        try {
+          let spotifyData = await getData('https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas')
+        } catch(error) {
+          notifyError(err)
+          return
+        }
         const song = {
           author: spotifyData.artists[0].name,
           title: spotifyData.name,
