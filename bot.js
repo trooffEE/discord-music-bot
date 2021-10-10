@@ -11,7 +11,6 @@ const TOKEN = process.env.TOKEN_BOT //
 const TOKEN_YT = process.env.TOKEN_YT // Secure
 const musicChannelID = process.env.MUSIC_CHANNEL //       data
 const musicLog = process.env.MUSIC_LOG //
-const chat = process.env.CHAT //
 
 let server // var for specific user info depending on id
 let spotifyURL = "https://open.spotify.com/track/"
@@ -62,7 +61,7 @@ bot.on("message", async (message) => {
           ytdl(link, {
             filter: "audioonly",
             highWaterMark: 1 << 25, // adding this line fixes ending video
-            // before dispatcher "finish" event
+                                    // before dispatcher "finish" event
           }),
           {volume: 0.2}
         )
@@ -76,8 +75,12 @@ bot.on("message", async (message) => {
               server.queue.shift()
             }
           }
-          if (link) play(connection, message)
-          else connection.disconnect()
+          if (link) {
+            play(connection, message)
+          }
+          else {
+            connection.disconnect()
+          }
         })
       }
       // ====================================================== play
@@ -134,7 +137,7 @@ bot.on("message", async (message) => {
         })
         // if link is YouTube video 
       } else {
-        server.queue.unshift(link)
+        server.queue.push(link)
 
         if (!message.guild.voiceConnection)
           voiceChannel.join().then((connection) => play(connection, message))
@@ -162,7 +165,6 @@ bot.on("message", async (message) => {
       }
       break
 
-    // FIX ME ↓
     case "!stop":
       message.delete()
       server = servers[message.guild.id]
@@ -176,7 +178,6 @@ bot.on("message", async (message) => {
 
       if (message.guild.connection) message.guild.voiceConnection.disconnect()
       break
-    // FIX ME ↑
 
     case "vlad":
     case "pasha":
