@@ -158,7 +158,6 @@ function sendSelfDestroyMessage(messageDiscordObject, message, attachment) {
     .then((msg) => msg.delete({ timeout: '3000' }))
 }
 
-
 async function play(connection, message) {
   let link = server.queue[0]
 
@@ -187,8 +186,10 @@ async function play(connection, message) {
       sendMusicLogMessage(`:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
 
     } catch(error) {
+
       console.log(error, 'Ошибка связанная с получением информации по ссылке: ' + link)
       sendMusicLogMessage(`:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
+      
     }
   }
 
