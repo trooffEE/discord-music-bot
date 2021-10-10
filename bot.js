@@ -17,7 +17,7 @@ const youTubeOptions = {
   key: TOKEN_YT,
 }
 
-const server
+let server
 let servers = {}
 let repeat = false, isSkipping = false
 
@@ -34,7 +34,6 @@ function sendMusicLogMessage(message) {
     .get(`${musicLog}`)
     .send(message)
 }
-
 
 function sendMainChatMessage(messageDiscordObject, message, attachment) {// Note: Переписать на TypeScript
   if (!attachment) {
