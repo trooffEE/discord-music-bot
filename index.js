@@ -111,7 +111,7 @@ async function play(connection, message) {
     if (link) {
       play(connection, message)
     }
-    else {
+    else { 
       connection.disconnect()
     }
   })
