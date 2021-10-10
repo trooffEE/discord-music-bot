@@ -64,7 +64,6 @@ async function play(connection, message) {
   }
 
   if (!ytdl.validateURL(link) && !link.startsWith(spotifyURL)) {
-    console.log(!ytdl.validateURL(link), !link.startsWith(spotifyURL))
     sendSelfDestroyMessage(
       message, 
       'Ссылка некорректная. Я принимаю только ссылки - YouTube и Spotify (в разработке :screwdriver: )'
