@@ -29,7 +29,7 @@ bot.on('ready', () => {
 
 bot.login(TOKEN)
 
-// Section: Helper-функции
+// Section: Helper-функции!
 function notifyError(error) {
   console.log('================================================')
   console.log(error)
