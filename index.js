@@ -17,6 +17,7 @@ const youTubeOptions = {
   maxResults: 1,
   key: TOKEN_YT,
 }
+var port = process.env.PORT || 8080;
 
 let server
 let servers = {}
