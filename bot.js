@@ -1,89 +1,38 @@
-"use strict"
-require("dotenv").config()
+'use strict'
+require('dotenv').config()
 
-const ytdl = require("ytdl-core") // Library for downloading video on YouTube
-let { getData } = require("spotify-url-info") // Method for getting very basic data from Spotify song
-const youtubeSearch = require("youtube-search") // Library for searching video on YouTube using song title
-const Discord = require("discord.js")
+const ytdl = require('ytdl-core') // Library for downloading video on YouTube
+const { getData } = require('spotify-url-info') // Method for getting very basic data from Spotify song
+const youtubeSearch = require('youtube-search') // Library for searching video on YouTube using song title
+const Discord = require('discord.js')
 const bot = new Discord.Client()
-const { MessageAttachment } = require("discord.js")
+const { MessageAttachment } = require('discord.js')
 const TOKEN = process.env.TOKEN_BOT //
 const TOKEN_YT = process.env.TOKEN_YT // Secure
 const musicChannelID = process.env.MUSIC_CHANNEL //       data
 const musicLog = process.env.MUSIC_LOG //
+const spotifyURL = process.env.BASE_SPOTIFY_URL
+const youTubeOptions = {
+  maxResults: 1,
+  key: TOKEN_YT,
+}
 
-let server // var for specific user info depending on id
-let spotifyURL = "https://open.spotify.com/track/"
+// Discord needed data
+const server
 let servers = {}
-let songsList = []
-let repeat = false
-let isSkipping = false
 
-bot.on("message", async (message) => {
-  let args = message.content.split(" ")
+// Note: нужно избавиться от костылика в виде isSkipping
+let repeat = false, isSkipping = false
+
+bot.on('message', async (message) => {
   const voiceChannel = message.member.voice.channel || { id: 0 }
+  const args = message.content.split(' ')
 
   switch (args[0]) {
-    case "!play":
+    case '!play':
       message.delete()
       let link = args[1]
       let repeat = args[2] === 'repeat'
-
-      // Note: Старт функции для проигрывния музыки
-      async function play(connection, message) {
-        let link = server.queue[0]
-
-        if (!link) {
-          return
-        }
-
-        if (!ytdl.validateURL(link) && !link.startsWith(spotifyURL)) {
-          sendSelfDestroyMessage(
-            message, 
-            'Ссылка некорректная. Я принимаю только ссылки - YouTube и Spotify (в разработке :screwdriver: )'
-          )
-          return
-        }
-          
-        let song = {}
-        let songsInQueue = server.queue.length
-
-        if (!repeat) {
-          const { videoDetails } = await ytdl.getInfo(link)
-          song.title = videoDetails.title
-          song.lengthSeconds = videoDetails.lengthSeconds
-          song.customer = message.member.nickname
-  
-          sendMusicLogMessage(`:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
-        }
-
-        server.dispatcher = connection.play(
-          ytdl(link, {
-            filter: "audioonly",
-            highWaterMark: 1 << 25, // adding this line fixes ending video
-                                    // before dispatcher "finish" event
-          }),
-          {volume: 0.2}
-        )
-
-        server.dispatcher.on("finish", () => {
-          if (!repeat) {
-            server.queue.shift()
-          } else {
-            if (isSkipping) {
-              repeat = false
-              server.queue.shift()
-            }
-          }
-          if (link) {
-            play(connection, message)
-          }
-          else {
-            connection.disconnect()
-          }
-        })
-      }
-      // ====================================================== play
 
       if (!link) {
         sendSelfDestroyMessage(message, 'Необходимо указать ссылку вторым аргументом после "!play"')
@@ -108,55 +57,50 @@ bot.on("message", async (message) => {
 
       server = servers[message.guild.id]
 
-      // if provided link relates to Spotify
+      // if provided link is Spotify track
       if (link.startsWith(spotifyURL)) {
-        let spotifyData = await getData(
-          "https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas"
-        )
-        let author = spotifyData.artists[0].name
-        let song = spotifyData.name
-
-        // for YouTube search
-        let opts = {
-          maxResults: 1,
-          key: TOKEN_YT,
+        let spotifyData = await getData('https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas')
+        const song = {
+          author: spotifyData.artists[0].name,
+          title: spotifyData.name,
         }
 
-        let ytLink
-        youtubeSearch(`${author} ${song}`, opts, (err, results) => {
+        youtubeSearch(`${song.author} ${song.title}`, youTubeOptions, (err, results) => {
           if (err) {
             console.log(err)
             return
           }
 
-          ytLink = results[0].link
+          const ytLink = results[0].link
           server.queue.push(ytLink)
 
-          if (!message.guild.voiceConnection)
+          if (!message.guild.voiceConnection) {
             voiceChannel.join().then((connection) => play(connection, message))
+          }
         })
-        // if link is YouTube video 
+      // if link is YouTube video 
       } else {
         server.queue.push(link)
 
-        if (!message.guild.voiceConnection)
+        if (!message.guild.voiceConnection) {
           voiceChannel.join().then((connection) => play(connection, message))
+        }
       }
       break
 
-    case "!pause":
+    case '!pause':
       message.delete()
       server = servers[message.guild.id]
       if (server.dispatcher) server.dispatcher.pause()
       break
 
-    case "!resume":
+    case '!resume':
       message.delete()
       server = servers[message.guild.id]
       if (server.dispatcher) server.dispatcher.resume()
       break
 
-    case "!skip":
+    case '!skip':
       message.delete()
       server = servers[message.guild.id]
       if (server.dispatcher) {
@@ -165,7 +109,7 @@ bot.on("message", async (message) => {
       }
       break
 
-    case "!stop":
+    case '!stop':
       message.delete()
       server = servers[message.guild.id]
 
@@ -173,23 +117,23 @@ bot.on("message", async (message) => {
         server.queue = []
 
         server.dispatcher.end()
-        console.log("\nStopped the queue!")
+        console.log('\nОчистил очередь!')
       }
 
       if (message.guild.connection) message.guild.voiceConnection.disconnect()
       break
 
-    case "vlad":
-    case "pasha":
+    case 'vlad':
+    case 'pasha':
       message.delete()
       const attachment = new MessageAttachment(`./images/${args[0]}.jpg`)
-      sendMainChatMessage(message, "Я крутой", attachment)
+      sendMainChatMessage(message, 'Я крутой', attachment)
       break
   }
 })
 
-bot.on("ready", () => {
-  console.log("Bot Started!")
+bot.on('ready', () => {
+  console.log('Бот инициализировался!')
 })
 
 bot.login(TOKEN)
@@ -216,4 +160,61 @@ function sendSelfDestroyMessage(messageDiscordObject, message, attachment) {
 }
 
 
-// Сделать админские команды
+async function play(connection, message) {
+  let link = server.queue[0]
+
+  if (!link) {
+    return
+  }
+
+  if (!ytdl.validateURL(link) && !link.startsWith(spotifyURL)) {
+    sendSelfDestroyMessage(
+      message, 
+      'Ссылка некорректная. Я принимаю только ссылки - YouTube и Spotify (в разработке :screwdriver: )'
+    )
+    return
+  }
+    
+  let song = {}
+  let songsInQueue = server.queue.length
+
+  if (!repeat) {
+    try {
+      const { videoDetails } = await ytdl.getInfo(link)
+      song.title = videoDetails.title
+      song.lengthSeconds = videoDetails.lengthSeconds
+      song.customer = message.member.nickname
+  
+      sendMusicLogMessage(`:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
+
+    } catch(error) {
+      console.log(error, 'Ошибка связанная с получением информации по ссылке: ' + link)
+      sendMusicLogMessage(`:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
+    }
+  }
+
+  server.dispatcher = connection.play(
+    ytdl(link, {
+      filter: 'audioonly', // adding line 'highWaterMark: 1 << 25' fixes ending video
+      highWaterMark: 1 << 25, // before dispatcher 'finish' event
+    }),
+    { volume: 0.2 }
+  )
+
+  server.dispatcher.on('finish', () => {
+    if (!repeat) {
+      server.queue.shift()
+    } else {
+      if (isSkipping) {
+        repeat = false
+        server.queue.shift()
+      }
+    }
+    if (link) {
+      play(connection, message)
+    }
+    else {
+      connection.disconnect()
+    }
+  })
+}
