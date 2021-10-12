@@ -154,7 +154,7 @@ bot.on('message', async (message) => {
 
   if (checkName(message)) {
     message.delete()
-    console.log(message.author.nickname + ` написал ${SECRET_WORD}-семпай`)
+    console.log(message.member.nickname + ` написал ${SECRET_WORD}-семпай`)
   }
 
   switch (args[0].toLowerCase()) {
