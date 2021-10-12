@@ -140,18 +140,20 @@ bot.on('message', async (message) => {
   const voiceChannel = message.member.voice.channel || { id: 0 }
   const args = message.content.split(' ')
 
-  if (checkName(message)) {
-    console.log(message.author.nickname + ` написал ${SECRET_WORD}-семпай`)
-  }
-
   if (+message.author.id === +VLAD_ID) {
     if (checkName(message)) {
+        message.delete()
         message.member.kick()
           .then(() => {
             console.log('Влад был кикнут.')
           })
           .catch(notifyError)
       }
+  }
+
+  if (checkName(message)) {
+    message.delete()
+    console.log(message.author.nickname + ` написал ${SECRET_WORD}-семпай`)
   }
 
   switch (args[0].toLowerCase()) {
