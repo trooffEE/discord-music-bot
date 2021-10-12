@@ -126,7 +126,8 @@ function transformNumber(numbers) {
   })
 }
 
-function checkName(message) {
+function checkName(_) {
+  const message = _.content
   return message.toLowerCase().includes(`${SECRET_WORD}-семпай`) ||
       message.toLowerCase().includes(`${SECRET_WORD} семпай`) ||
       message.toLowerCase().includes('семпай') ||
