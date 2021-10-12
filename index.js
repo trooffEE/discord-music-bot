@@ -129,7 +129,10 @@ function transformNumber(numbers) {
 function checkName(message) {
   return message.toLowerCase().contains(`${SECRET_WORD}-семпай`) ||
       message.toLowerCase().contains(`${SECRET_WORD} семпай`) ||
-      message.toLowerCase().contains('семпай')
+      message.toLowerCase().contains('семпай') ||
+      message.toLowerCase().contains(`${SECRET_WORD}-сэмпай`) ||
+      message.toLowerCase().contains(`${SECRET_WORD} сэмпай`) ||
+      message.toLowerCase().contains('сэмпай')
 }
 
 // Section: Слушатель сообщений
