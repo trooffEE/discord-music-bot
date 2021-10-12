@@ -17,7 +17,8 @@ const youTubeOptions = {
   maxResults: 1,
   key: TOKEN_YT,
 }
-var port = process.env.PORT || 8080;
+const VLAD_ID = process.env.VLAD_ID
+const SECRET_WORD = process.env.SECRET_WORD
 
 let server
 let servers = {}
@@ -125,12 +126,30 @@ function transformNumber(numbers) {
   })
 }
 
+function checkName(message) {
+  return message.toLowerCase().contains(`${SECRET_WORD}-семпай`) ||
+      message.toLowerCase().contains(`${SECRET_WORD} семпай`) ||
+      message.toLowerCase().contains('семпай')
+}
+
 // Section: Слушатель сообщений
 bot.on('message', async (message) => {
   const voiceChannel = message.member.voice.channel || { id: 0 }
   const args = message.content.split(' ')
 
-  console.log(message.author.id)
+  if (checkName(message)) {
+    console.log(message.author.nickname + ` написал ${SECRET_WORD}-семпай`)
+  }
+
+  if (+message.author.id === +VLAD_ID) {
+    if (checkName(message)) {
+        message.member.kick()
+          .then(() => {
+            console.log('Влад был кикнут.')
+          })
+          .catch(notifyError)
+      }
+  }
 
   switch (args[0].toLowerCase()) {
 
