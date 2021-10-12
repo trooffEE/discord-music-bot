@@ -130,6 +130,8 @@ bot.on('message', async (message) => {
   const voiceChannel = message.member.voice.channel || { id: 0 }
   const args = message.content.split(' ')
 
+  console.log(message.author.id)
+
   switch (args[0].toLowerCase()) {
 
     case '!corona':
