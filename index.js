@@ -127,12 +127,12 @@ function transformNumber(numbers) {
 }
 
 function checkName(message) {
-  return message.toLowerCase().contains(`${SECRET_WORD}-семпай`) ||
-      message.toLowerCase().contains(`${SECRET_WORD} семпай`) ||
-      message.toLowerCase().contains('семпай') ||
-      message.toLowerCase().contains(`${SECRET_WORD}-сэмпай`) ||
-      message.toLowerCase().contains(`${SECRET_WORD} сэмпай`) ||
-      message.toLowerCase().contains('сэмпай')
+  return message.toLowerCase().includes(`${SECRET_WORD}-семпай`) ||
+      message.toLowerCase().includes(`${SECRET_WORD} семпай`) ||
+      message.toLowerCase().includes('семпай') ||
+      message.toLowerCase().includes(`${SECRET_WORD}-сэмпай`) ||
+      message.toLowerCase().includes(`${SECRET_WORD} сэмпай`) ||
+      message.toLowerCase().includes('сэмпай')
 }
 
 // Section: Слушатель сообщений
@@ -143,7 +143,7 @@ bot.on('message', async (message) => {
   if (+message.author.id === +VLAD_ID) {
     if (checkName(message)) {
         message.delete()
-        message.member.kick()
+        message.member.kick(`ты охуел, я не ${SECRET_WORD}-семпай`)
           .then(() => {
             console.log('Влад был кикнут.')
           })
