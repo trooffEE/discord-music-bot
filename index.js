@@ -103,7 +103,7 @@ async function play(connection, message) {
   } else {
     server.dispatcher = connection.play(
       './audio/Mudak.mp4',
-      { volume: 0.2 }
+      { volume: 1 }
     )
   }
 
@@ -322,6 +322,7 @@ bot.on('message', async (message) => {
 
     case 'Мудак':
     case 'мудак':
+      message.delete()
       if (!servers[message.guild.id]) {
         servers[message.guild.id] = {
           queue: [],
