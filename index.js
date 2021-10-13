@@ -331,7 +331,7 @@ bot.on('message', async (message) => {
 
       server = servers[message.guild.id]
 
-      server.queue.push('мудак')
+      server.queue.unshift('мудак')
 
       if (!message.guild.voiceConnection) {
         voiceChannel.join().then((connection) => play(connection, message))
