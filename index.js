@@ -103,7 +103,7 @@ async function play(connection, message) {
   } else {
     server.dispatcher = connection.play(
       './audio/Mudak.mp4',
-      { volume: 1 }
+      { volume: 0.7 }
     )
   }
 
