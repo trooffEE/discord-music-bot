@@ -59,12 +59,13 @@ function sendSelfDestroyMessage(messageDiscordObject, message, attachment, delay
 
 async function play(connection, message) {
   let link = server.queue[0]
+  const isMudak = link === 'мудак'
 
   if (!link) {
     return
   }
 
-  if (!ytdl.validateURL(link) && !link.startsWith(spotifyURL)) {
+ if (!ytdl.validateURL(link) && !link.startsWith(spotifyURL) && !isMudak) {
     sendSelfDestroyMessage(
       message, 
       'Ссылка некорректная. Я принимаю только ссылки - YouTube и Spotify (в разработке :screwdriver: )'
@@ -72,10 +73,10 @@ async function play(connection, message) {
     return
   }
     
-  let song = {}
-  let songsInQueue = server.queue.length
-
-  if (!repeat) {
+  
+  if (!repeat && !isMudak) {
+    let song = {}
+    let songsInQueue = server.queue.length
     try {
       const { videoDetails } = await ytdl.getInfo(link)
       song.title = videoDetails.title
@@ -87,18 +88,24 @@ async function play(connection, message) {
     } catch(error) {
 
       notifyError(error)
-      sendMusicLogMessage(`:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
-      
+      sendMusicLogMessage(`:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*${link}*`)
     }
   }
 
-  server.dispatcher = connection.play(
-    ytdl(link, {
-      filter: 'audioonly', // adding line 'highWaterMark: 1 << 25' fixes ending video
-      highWaterMark: 1 << 25, // before dispatcher 'finish' event
-    }),
-    { volume: 0.2 }
-  )
+  if (!isMudak) {
+    server.dispatcher = connection.play(
+      ytdl(link, {
+        filter: 'audioonly', // adding line 'highWaterMark: 1 << 25' fixes ending video
+        highWaterMark: 1 << 25, // before dispatcher 'finish' event
+      }),
+      { volume: 0.2 }
+    )
+  } else {
+    server.dispatcher = connection.play(
+      './audio/Mudak.mp4',
+      { volume: 0.2 }
+    )
+  }
 
   server.dispatcher.on('finish', () => {
     if (!repeat) {
@@ -313,13 +320,21 @@ bot.on('message', async (message) => {
       sendMainChatMessage(message, 'Я крутой', attachment)
       break
 
-    case 'мудак':
     case 'Мудак':
-      message.delete()
-      message.channel.send({
-        files: [
-          './audio/Mudak.mp4'
-      ]})
+    case 'мудак':
+      if (!servers[message.guild.id]) {
+        servers[message.guild.id] = {
+          queue: [],
+        }
+      }
+
+      server = servers[message.guild.id]
+
+      server.queue.push('мудак')
+
+      if (!message.guild.voiceConnection) {
+        voiceChannel.join().then((connection) => play(connection, message))
+      }
       break
   }
 })
