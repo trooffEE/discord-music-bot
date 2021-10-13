@@ -157,7 +157,7 @@ bot.on('message', async (message) => {
   }
 
   switch (args[0].toLowerCase()) {
-    
+
     case '!corona':
       message.delete()
       // Note: https://covid-19-data.unstatshub.org/datasets/cases-country/api
@@ -316,8 +316,8 @@ bot.on('message', async (message) => {
     case 'мудак':
     case 'Мудак':
       message.delete()
-      const attachment = new MessageAttachment(`./audio/Mudak.mp4`)
-      sendMainChatMessage(message, '', attachment)
+      const mudak = new MessageAttachment(`./audio/Mudak.mp4`)
+      sendMainChatMessage(message, '', mudak)
       break
   }
 })
