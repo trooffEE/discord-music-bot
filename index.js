@@ -151,8 +151,7 @@ bot.on('message', async (message) => {
           .catch(notifyError)
       }
   }
-
-  if (checkName(message)) {
+  else if (checkName(message)) {
     message.delete()
     console.log(message.member.nickname + ` написал ${SECRET_WORD}-семпай`)
   }
