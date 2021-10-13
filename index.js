@@ -316,8 +316,10 @@ bot.on('message', async (message) => {
     case 'мудак':
     case 'Мудак':
       message.delete()
-      const mudak = new MessageAttachment(`./audio/Mudak.mp4`)
-      sendMainChatMessage(message, '', mudak)
+      message.channel.send({
+        files: [
+          './audio/Mudak.mp4'
+      ]})
       break
   }
 })
