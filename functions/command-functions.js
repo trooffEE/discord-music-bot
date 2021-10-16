@@ -53,3 +53,4 @@ const showRussianCoronavirus = async (message) => {
 }
 
 module.exports.showAlbanianCoronavirus = showAlbanianCoronavirus
+module.exports.showRussianCoronavirus = showRussianCoronavirus
