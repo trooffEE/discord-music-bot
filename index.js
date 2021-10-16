@@ -43,7 +43,6 @@ async function play(connection, message) {
     return
   }
     
-  
   if (!repeat && !isMudak) {
     let song = {}
     let songsInQueue = server.queue.length
@@ -53,12 +52,12 @@ async function play(connection, message) {
       song.lengthSeconds = videoDetails.lengthSeconds
       song.customer = message.member.nickname
   
-      HelperFunctionsModule.sendMusicLogMessage(`:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
+      HelperFunctionsModule.sendMusicLogMessage(bot, `:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
 
     } catch(error) {
 
       HelperFunctionsModule.notifyError(error)
-      HelperFunctionsModule.sendMusicLogMessage(`:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
+      HelperFunctionsModule.sendMusicLogMessage(bot, `:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
       
     }
   }
