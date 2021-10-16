@@ -79,6 +79,6 @@ const getPlaylistData = async (playlistId) => {
   }
 }
 
-module.exports.getPlaylistData = showRussianCoronavirus
+module.exports.getPlaylistData = getPlaylistData
 module.exports.showAlbanianCoronavirus = showAlbanianCoronavirus
 module.exports.showRussianCoronavirus = showRussianCoronavirus
