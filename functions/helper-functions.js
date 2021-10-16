@@ -9,7 +9,7 @@ function notifyError(error) {
   console.log('================================================')
 }
 
-function sendMusicLogMessage(message) {
+function sendMusicLogMessage(bot, message) {
   bot.channels.cache
     .get(`${MUSIC_LOG}`)
     .send(message)
