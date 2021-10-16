@@ -49,9 +49,8 @@ async function play(connection, message) {
     const match = reg.exec(link);
     // вместо нашей ссылки там окажется массив ссылок - это и есть наш плейлист
     const playlist = await getPlaylistData(match[0].substring(6))
-    server.queue.splice(0, 1, playlist)
+    server.queue.splice(-1, 1, playlist)
     server.queue = server.queue.flat()
-    link = server.queue[0]
   }
     
   if (!repeat && !isMudak) { // temproray
