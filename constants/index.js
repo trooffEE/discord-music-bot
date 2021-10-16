@@ -1,0 +1,17 @@
+const { BASE_SPOTIFY_URL, TOKEN_YT, YOUTUBE_SEARCH_OPTIONS, CORONA_URL } = require('./api');
+const { MUSIC_CHANNEL, MUSIC_LOG, TOKEN } = require('./discord');
+const { SECRET_WORD, VLAD_ID } = require('./etc');
+
+const CONSTANTS = {
+  BASE_SPOTIFY_URL,
+  MUSIC_CHANNEL,
+  MUSIC_LOG,
+  TOKEN_YT,
+  TOKEN,
+  YOUTUBE_SEARCH_OPTIONS,
+  SECRET_WORD,
+  VLAD_ID,
+  CORONA_URL,
+}
+
+module.exports = CONSTANTS
