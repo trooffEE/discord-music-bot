@@ -198,7 +198,7 @@ bot.on('message', async (message) => {
       server = servers[message.guild.id]
 
       // CASE: Spotify link
-      if (link.startsWith(spotifyURL)) {
+      if (link.startsWith(ConstantsModule.BASE_SPOTIFY_URL)) {
         try {
           let spotifyData = await getData('https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas')
         } catch(error) {
