@@ -48,7 +48,7 @@ async function play(connection, message) {
     const reg = new RegExp("[&?]list=([a-z0-9_]+)","i");
     const match = reg.exec(link);
     // вместо нашей ссылки там окажется массив ссылок - это и есть наш плейлист
-    server.queue.splice(0, 1, getPlaylistData(match[0].substring(6))) 
+    server.queue.splice(0, 1, await getPlaylistData(match[0].substring(6))) 
     console.log(server.queue)
   }
     
