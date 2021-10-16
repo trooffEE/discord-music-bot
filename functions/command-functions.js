@@ -71,10 +71,9 @@ const getPlaylistData = async (playlistId) => {
       playlistId,
       maxResults: 50,
     })
-    console.log(data)
-    return data.items.map(playlistItem => playlistItem.videoId )
+    const baseLink = 'https://www.youtube.com/watch?v='
+    return data.items.map(playlistItem => baseLink + playlistItem.contentDetails.videoId )
   } catch(e) {
-    console.log(e)
     notifyError(e)
   }
 }
