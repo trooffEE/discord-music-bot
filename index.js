@@ -3,7 +3,6 @@
 const ytdl = require('ytdl-core') // Library for downloading video on YouTube
 const { getData } = require('spotify-url-info') // Method for getting very basic data from Spotify song
 const youtubeSearch = require('youtube-search') // Library for searching video on YouTube using song title
-const axios = require('axios');
 const Discord = require('discord.js')
 const bot = new Discord.Client()
 const { MessageAttachment } = require('discord.js')
