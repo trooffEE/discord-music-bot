@@ -10,7 +10,7 @@ const { MessageAttachment } = require('discord.js')
 
 // constants
 const ConstantsModule = require('./constants/index');
-const { SECRET_WORD } = require('./constants/etc');
+const { SECRET_WORD, VLAD_ID } = require('./constants/etc');
 
 // helper functions
 const HelperFunctionsModule = require('./functions/helper-functions');
