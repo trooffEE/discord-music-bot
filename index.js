@@ -1,5 +1,4 @@
 'use strict'
-require('dotenv').config()
 
 const ytdl = require('ytdl-core') // Library for downloading video on YouTube
 const { getData } = require('spotify-url-info') // Method for getting very basic data from Spotify song
@@ -8,15 +7,11 @@ const axios = require('axios');
 const Discord = require('discord.js')
 const bot = new Discord.Client()
 const { MessageAttachment } = require('discord.js')
-const TOKEN = process.env.TOKEN_BOT //
-const TOKEN_YT = process.env.TOKEN_YT // Secure
-const musicChannelID = process.env.MUSIC_CHANNEL //       data
-const musicLog = process.env.MUSIC_LOG //
-const spotifyURL = process.env.BASE_SPOTIFY_URL
-const youTubeOptions = {
-  maxResults: 1,
-  key: TOKEN_YT,
-}
+
+// constants
+const ConstantsModule = require('./constants/index');
+// helper functions
+const HelperFunctionsModule = require('./functions/helper-functions');
 
 let server
 let servers = {}
@@ -27,33 +22,7 @@ bot.on('ready', () => {
   console.log('Бот инициализировался!')
 })
 
-bot.login(TOKEN)
-
-// Section: Helper-функции!
-function notifyError(error) {
-  console.log('================================================')
-  console.log(error)
-  console.log('================================================')
-}
-
-function sendMusicLogMessage(message) {
-  bot.channels.cache
-    .get(`${musicLog}`)
-    .send(message)
-}
-
-function sendMainChatMessage(messageDiscordObject, message, attachment) {// Note: Переписать на TypeScript
-  if (!attachment) {
-    return messageDiscordObject.channel.send(message)
-  } else {
-    return messageDiscordObject.channel.send(message, attachment)
-  }
-}
-
-function sendSelfDestroyMessage(messageDiscordObject, message, attachment, delay = '3000') {
-  sendMainChatMessage(messageDiscordObject, message, attachment)
-    .then((msg) => msg.delete({ timeout: delay }))
-}
+bot.login(ConstantsModule.TOKEN)
 
 async function play(connection, message) {
   let link = server.queue[0]
@@ -62,9 +31,9 @@ async function play(connection, message) {
     return
   }
 
-  if (!ytdl.validateURL(link) && !link.startsWith(spotifyURL)) {
-    console.log(!ytdl.validateURL(link), !link.startsWith(spotifyURL))
-    sendSelfDestroyMessage(
+  if (!ytdl.validateURL(link) && !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL)) {
+    console.log(!ytdl.validateURL(link), !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL))
+    HelperFunctionsModule.sendSelfDestroyMessage(
       message, 
       'Ссылка некорректная. Я принимаю только ссылки - YouTube и Spotify (в разработке :screwdriver: )'
     )
@@ -81,12 +50,12 @@ async function play(connection, message) {
       song.lengthSeconds = videoDetails.lengthSeconds
       song.customer = message.member.nickname
   
-      sendMusicLogMessage(`:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
+      HelperFunctionsModule.sendMusicLogMessage(`:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
 
     } catch(error) {
 
-      notifyError(error)
-      sendMusicLogMessage(`:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
+      HelperFunctionsModule.notifyError(error)
+      HelperFunctionsModule.sendMusicLogMessage(`:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
       
     }
   }
@@ -117,14 +86,6 @@ async function play(connection, message) {
   })
 }
 
-function transformNumber(numbers) {
-  return numbers.forEach((num, idx) => {
-    if (idx % 3 === 0) {
-      numbers.splice(index, 0, ' ')
-    }
-  })
-}
-
 // Section: Слушатель сообщений
 bot.on('message', async (message) => {
   const voiceChannel = message.member.voice.channel || { id: 0 }
@@ -143,9 +104,9 @@ bot.on('message', async (message) => {
           const infected = albania.attributes.Confirmed
           const text = `:flag_al: Албанский коронавирус :flag_al:\nЗаражено: ${infected}\nПомэрло: ${deaths}`
 
-          sendSelfDestroyMessage(message, text, null, 60_000)
+          HelperFunctionsModule.sendSelfDestroyMessage(message, text, null, 60_000)
         })
-        .catch(notifyError)
+        .catch(HelperFunctionsModule.notifyError)
       break
 
     case '!corona-ru':
@@ -173,13 +134,13 @@ bot.on('message', async (message) => {
             `\nВыздоровело: ${data.recovered} человек` + 
             `\nПогибло: ${data.deceased} человек\n`
 
-          sendSelfDestroyMessage(message, 
+          HelperFunctionsModule.sendSelfDestroyMessage(message, 
             textAboutRussia + textAboutRegions,
             null,
             60_000
           )
         })
-        .catch(notifyError)
+        .catch(HelperFunctionsModule.notifyError)
       break
 
     case '!play':
@@ -188,17 +149,17 @@ bot.on('message', async (message) => {
       let repeat = args[2] === 'repeat'
 
       if (!link) {
-        sendSelfDestroyMessage(message, 'Необходимо указать ссылку вторым аргументом после "!play"')
+        HelperFunctionsModule.sendSelfDestroyMessage(message, 'Необходимо указать ссылку вторым аргументом после "!play"')
         return
       }
 
       if (!voiceChannel) {
-        sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
+        HelperFunctionsModule.sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
         return
       }
 
-      if (voiceChannel.id !== musicChannelID) {
-        sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
+      if (voiceChannel.id !== ConstantsModule.MUSIC_CHANNEL) {
+        HelperFunctionsModule.sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
         return
       }
 
@@ -211,16 +172,16 @@ bot.on('message', async (message) => {
       server = servers[message.guild.id]
 
       // CASE: Spotify link
-      if (link.startsWith(spotifyURL)) {
+      if (link.startsWith(ConstantsModule.BASE_SPOTIFY_URL)) {
         let spotifyData = await getData('https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas')
         const song = {
           author: spotifyData.artists[0].name,
           title: spotifyData.name,
         }
 
-        youtubeSearch(`${song.author} ${song.title}`, youTubeOptions, (err, youtubeVideoList) => {
+        youtubeSearch(`${song.author} ${song.title}`, ConstantsModule.YOUTUBE_SEARCH_OPTIONS, (err, youtubeVideoList) => {
           if (err) {
-            notifyError(err)
+            HelperFunctionsModule.notifyError(err)
             return
           }
 
@@ -279,7 +240,7 @@ bot.on('message', async (message) => {
     case 'pasha':
       message.delete()
       const attachment = new MessageAttachment(`./images/${args[0]}.jpg`)
-      sendMainChatMessage(message, 'Я крутой', attachment)
+      HelperFunctionsModule.sendMainChatMessage(message, 'Я крутой', attachment)
       break
   }
 })
