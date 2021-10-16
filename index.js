@@ -30,11 +30,12 @@ bot.login(ConstantsModule.TOKEN)
 async function play(connection, message) {
   let link = server.queue[0]
   const isMudak = link === 'мудак'
-  const isPlaylist = link.includes('list')
   
   if (!link) {
     return
   }
+  
+  const isPlaylist = link.includes('list')
 
   if (!ytdl.validateURL(link) && !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL) && !isMudak) {
     HelperFunctionsModule.sendSelfDestroyMessage(
@@ -45,7 +46,7 @@ async function play(connection, message) {
   }
 
   if (isPlaylist) {
-    ytlist(link, ['id', 'name', 'url']).then(res => {
+    ytlist(link, ['url']).then(res => {
       console.log(res.data)
     })
   }
