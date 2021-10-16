@@ -1,5 +1,12 @@
 const axios = require('axios')
-const { sendSelfDestroyMessage, notifyError } = require("./helper-functions")
+const { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET } = require('../constants/api');
+const { TOKEN_YT } = require('../constants')
+const { google } = require('googleapis')
+
+const { 
+  sendSelfDestroyMessage,
+  notifyError,
+} = require("./helper-functions");
 
 const showAlbanianCoronavirus = async (message) => {
   message.delete()
@@ -52,5 +59,25 @@ const showRussianCoronavirus = async (message) => {
     .catch(notifyError)
 }
 
+const getPlaylistData = async (playlistId) => {
+  const youtube = google.youtube({
+    version: 'v3',
+    auth: TOKEN_YT
+  })
+  
+  try {
+    const { data } = await youtube.playlistItems.list({
+      part: 'contentDetails',
+      playlistId,
+      maxResults: 50,
+    })
+    console.log(data)
+    return data.items.map(playlistItem => playlistItem.videoId )
+  } catch(e) {
+    notifyError(e)
+  }
+}
+
+module.exports.getPlaylistData = showRussianCoronavirus
 module.exports.showAlbanianCoronavirus = showAlbanianCoronavirus
 module.exports.showRussianCoronavirus = showRussianCoronavirus

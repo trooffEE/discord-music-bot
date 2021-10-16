@@ -1,7 +1,6 @@
 'use strict'
 
 const ytdl = require('ytdl-core') // Library for downloading video on YouTube
-const ytlist = require('youtube-playlist'); // Getting data from youtube playlist
 const { getData } = require('spotify-url-info') // Method for getting very basic data from Spotify song
 const youtubeSearch = require('youtube-search') // Library for searching video on YouTube using song title
 const Discord = require('discord.js')
@@ -14,7 +13,7 @@ const { SECRET_WORD, VLAD_ID } = require('./constants/etc');
 
 // helper functions
 const HelperFunctionsModule = require('./functions/helper-functions');
-const { showAlbanianCoronavirus, showRussianCoronavirus } = require('./functions/command-functions')
+const { showAlbanianCoronavirus, showRussianCoronavirus, getPlaylistData } = require('./functions/command-functions')
 
 let server
 let servers = {}
@@ -34,7 +33,7 @@ async function play(connection, message) {
   if (!link) {
     return
   }
-  
+
   const isPlaylist = link.includes('list')
 
   if (!ytdl.validateURL(link) && !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL) && !isMudak) {
@@ -46,9 +45,10 @@ async function play(connection, message) {
   }
 
   if (isPlaylist) {
-    ytlist(link, ['url']).then(res => {
-      console.log(res.data)
-    })
+    const reg = new RegExp("[&?]list=([a-z0-9_]+)","i");
+    const match = reg.exec(link);
+    // вместо нашей ссылки там окажется массив ссылок - это и есть наш плейлист
+    server.queue.splice(0, 1, getPlaylistData(match[0])) 
   }
     
   if (!repeat && !isMudak) { // temproray
