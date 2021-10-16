@@ -13,7 +13,6 @@ const { SECRET_WORD, VLAD_ID } = require('./constants/etc');
 
 // helper functions
 const HelperFunctionsModule = require('./functions/helper-functions');
-// Api 
 const { showAlbanianCoronavirus, showRussianCoronavirus } = require('./functions/command-functions')
 
 let server
@@ -35,8 +34,7 @@ async function play(connection, message) {
     return
   }
 
-  if (!ytdl.validateURL(link) && !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL)) {
-    console.log(!ytdl.validateURL(link), !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL))
+  if (!ytdl.validateURL(link) && !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL) && !isMudak) {
     HelperFunctionsModule.sendSelfDestroyMessage(
       message, 
       'Ссылка некорректная. Я принимаю только ссылки - YouTube и Spotify (в разработке :screwdriver: )'
@@ -110,8 +108,7 @@ bot.on('message', async (message) => {
           })
           .catch(notifyError)
       }
-  }
-  else if (HelperFunctionsModule.checkSecretWord(message)) {
+  } else if (HelperFunctionsModule.checkSecretWord(message)) {
     message.delete()
     console.log(message.member.nickname + ` написал ${SECRET_WORD}-семпай`)
   }
