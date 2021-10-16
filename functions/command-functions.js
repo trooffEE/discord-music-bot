@@ -74,6 +74,7 @@ const getPlaylistData = async (playlistId) => {
     console.log(data)
     return data.items.map(playlistItem => playlistItem.videoId )
   } catch(e) {
+    console.log(e)
     notifyError(e)
   }
 }
