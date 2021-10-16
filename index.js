@@ -1,6 +1,7 @@
 'use strict'
 
 const ytdl = require('ytdl-core') // Library for downloading video on YouTube
+const ytlist = require('youtube-playlist'); // Getting data from youtube playlist
 const { getData } = require('spotify-url-info') // Method for getting very basic data from Spotify song
 const youtubeSearch = require('youtube-search') // Library for searching video on YouTube using song title
 const Discord = require('discord.js')
@@ -29,7 +30,8 @@ bot.login(ConstantsModule.TOKEN)
 async function play(connection, message) {
   let link = server.queue[0]
   const isMudak = link === 'мудак'
-
+  const isPlaylist = link.includes('list')
+  
   if (!link) {
     return
   }
@@ -41,8 +43,14 @@ async function play(connection, message) {
     )
     return
   }
+
+  if (isPlaylist) {
+    ytlist(link, ['id', 'name', 'url']).then(res => {
+      console.log(res.data)
+    })
+  }
     
-  if (!repeat && !isMudak) {
+  if (!repeat && !isMudak) { // temproray
     let song = {}
     let songsInQueue = server.queue.length
     try {
