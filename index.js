@@ -93,6 +93,7 @@ async function play(connection, message) {
     } else {
       if (isSkipping) {
         repeat = false
+        isSkipping = false
         server.queue.shift()
       }
     }
