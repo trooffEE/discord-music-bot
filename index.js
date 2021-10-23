@@ -124,6 +124,10 @@ bot.on('message', async (message) => {
     console.log(message.member.nickname + ` написал ${SECRET_WORD}-семпай`)
   }
 
+  if (+message.author.id === 622079509570781186) {
+    return
+  }
+
   switch (args[0].toLowerCase()) {
 
     case '!corona':
@@ -241,6 +245,9 @@ bot.on('message', async (message) => {
 
     case 'Мудак':
     case 'мудак':
+      if () {
+
+      }
       message.delete()
       if (!servers[message.guild.id]) {
         servers[message.guild.id] = {
