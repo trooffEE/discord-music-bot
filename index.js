@@ -245,9 +245,6 @@ bot.on('message', async (message) => {
 
     case 'Мудак':
     case 'мудак':
-      if () {
-
-      }
       message.delete()
       if (!servers[message.guild.id]) {
         servers[message.guild.id] = {
