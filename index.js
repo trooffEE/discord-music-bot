@@ -37,6 +37,7 @@ async function play(connection, message) {
   const isPlaylist = link.includes('list')
 
   if (!ytdl.validateURL(link) && !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL) && !isMudak) {
+    console.log(!ytdl.validateURL(link), !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL), !isMudak)
     HelperFunctionsModule.sendSelfDestroyMessage(
       message, 
       'Ссылка некорректная. Я принимаю только ссылки - YouTube и Spotify (в разработке :screwdriver: )'
