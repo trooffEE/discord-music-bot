@@ -132,6 +132,10 @@ bot.on('message', async (message) => {
 
   switch (args[0].toLowerCase()) {
 
+    // case '!disconnect':
+    //   message.delete()
+    //   break
+
     case '!corona':
       showAlbanianCoronavirus(message)
       break
@@ -151,12 +155,12 @@ bot.on('message', async (message) => {
       }
 
       if (!voiceChannel) {
-        HelperFunctionsModule.sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
+        HelperFunctionsModule.sendSelfDestroyMessage(message, 'Необходимо находиться в канале "main"')
         return
       }
 
       if (voiceChannel.id !== ConstantsModule.MUSIC_CHANNEL) {
-        HelperFunctionsModule.sendSelfDestroyMessage(message, 'Необходимо находиться в канале "music allowed"')
+        HelperFunctionsModule.sendSelfDestroyMessage(message, 'Необходимо находиться в канале "main"')
         return
       }
 
@@ -262,5 +266,21 @@ bot.on('message', async (message) => {
         voiceChannel.join().then((connection) => play(connection, message))
       }
       break
+  }
+})
+
+
+// Observe connection to voice channel where bot is placed 
+bot.on('voiceStateUpdate', (oldMember, newMember) => {
+
+  if (!newMember.channel && oldMember.channelID === process.env.MUSIC_CHANNEL) {
+    // We disconnected
+    if (oldMember.channel.members.size === 0) {
+      if (oldMember.channel.members.find(item => item.user.bot)) {
+        oldMember.channel.members.find(item => item.user.bot).voice.setChannel(null)
+        console.log('bot disconnected')
+      }
+    }
+    return
   }
 })
