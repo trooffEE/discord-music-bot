@@ -28,6 +28,7 @@ bot.login(ConstantsModule.TOKEN)
 
 const obtainLyrics = async (query) => {
   const config = await searchForSong(query)
+  if (!config) return
 
   const attachmentLyrics = new MessageAttachment(config.thumbnailUrl)      
   HelperFunctionsModule.sendMusicLyricsMessage(bot, 

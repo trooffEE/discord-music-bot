@@ -123,6 +123,9 @@ const searchForSong = async (query) => {
 
   // We Assume that first one - is the one that most relevant
   const ourSong = songs[0]
+  if (!ourSong) {
+    return null
+  }
   const title = ourSong.result.full_title
   const thumbnailUrl = ourSong.result.song_art_image_thumbnail_url
   const releaseDate = ourSong.result.release_date_for_display
