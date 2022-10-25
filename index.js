@@ -80,7 +80,10 @@ async function play(connection, message, args) {
 
       HelperFunctionsModule.sendMusicLogMessage(bot, `:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
 
-      withLyrics && obtainLyrics(song.title)
+      withLyrics && obtainLyrics(song.title
+        .replace(/\([^\)]*\)?/gm, '')
+        .replace(/\[[^\]]*\]?/gm, '')
+      )
     } catch (error) {
 
       HelperFunctionsModule.notifyError(error)

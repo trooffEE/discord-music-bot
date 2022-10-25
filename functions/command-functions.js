@@ -110,7 +110,7 @@ const getRawLyrics = async (songURI) => {
   let html = (await axios.get('https://genius.com' + songURI)).data
 
   const dom = new JSDOM(html), dataAttributeToSearch = '[data-lyrics-container="true"]'
-  const rootOfLyrics = dom.window.document.querySelector(dataAttributeToSearch)  
+  const rootOfLyrics = dom.window.document.querySelector(dataAttributeToSearch)
   if (!rootOfLyrics) {
     return null
   }
