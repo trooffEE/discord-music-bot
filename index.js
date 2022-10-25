@@ -13,7 +13,7 @@ const { SECRET_WORD, VLAD_ID } = require('./constants/etc');
 
 // helper functions
 const HelperFunctionsModule = require('./functions/helper-functions');
-const { showAlbanianCoronavirus, showRussianCoronavirus, getPlaylistData } = require('./functions/command-functions')
+const { showAlbanianCoronavirus, showRussianCoronavirus, getPlaylistData, searchForSong } = require('./functions/command-functions')
 
 let server
 let servers = {}
@@ -26,10 +26,25 @@ bot.on('ready', () => {
 
 bot.login(ConstantsModule.TOKEN)
 
-async function play(connection, message) {
-  let link = server.queue[0]
+const obtainLyrics = async (query) => {
+  const config = await searchForSong(query)
+
+  const attachmentLyrics = new MessageAttachment(config.thumbnailUrl)      
+  HelperFunctionsModule.sendMusicLyricsMessage(bot, 
+  `
+  :flag_${config.language}: ${config.title}\n
+  Дата релиза песни: ${config.releaseDate}\n
+
+  :beers: Слова:\n
+  ${config.lyrics}
+  `, attachmentLyrics)
+}
+
+async function play(connection, message, args) {
+  const link = server.queue[0]
   const isMudak = link === 'мудак'
-  
+  const withLyrics = args[2] === '--lyrics' || args[2] === '-l'
+
   if (!link) {
     return
   }
@@ -37,23 +52,22 @@ async function play(connection, message) {
   const isPlaylist = link.includes('list')
 
   if (!ytdl.validateURL(link) && !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL) && !isMudak) {
-    console.log(!ytdl.validateURL(link), !link.startsWith(ConstantsModule.BASE_SPOTIFY_URL), !isMudak)
     HelperFunctionsModule.sendSelfDestroyMessage(
-      message, 
+      message,
       'Ссылка некорректная. Я принимаю только ссылки - YouTube и Spotify (в разработке :screwdriver: )'
     )
     return
   }
 
   if (isPlaylist) {
-    const reg = new RegExp("[&?]list=([a-z0-9_]+)","i");
+    const reg = new RegExp("[&?]list=([a-z0-9_]+)", "i");
     const match = reg.exec(link);
     // вместо нашей ссылки там окажется массив ссылок - это и есть наш плейлист
     const playlist = await getPlaylistData(match[0].substring(6))
     server.queue.splice(-1, 1, playlist)
     server.queue = server.queue.flat()
   }
-    
+
   if (!repeat && !isMudak) { // temproray
     let song = {}
     let songsInQueue = server.queue.length
@@ -62,14 +76,15 @@ async function play(connection, message) {
       song.title = videoDetails.title
       song.lengthSeconds = videoDetails.lengthSeconds
       song.customer = message.member.nickname
-  
+
       HelperFunctionsModule.sendMusicLogMessage(bot, `:musical_note: ${song.title}\nЗаказал: ${song.customer}\nПесен в очереди: ${songsInQueue}`)
 
-    } catch(error) {
+      withLyrics && obtainLyrics(song.title)
+    } catch (error) {
 
       HelperFunctionsModule.notifyError(error)
       HelperFunctionsModule.sendMusicLogMessage(bot, `:see_no_evil: Ошибка связанная с получением информации по ссылке: ` + `*link*`)
-      
+
     }
   }
 
@@ -99,9 +114,9 @@ async function play(connection, message) {
       }
     }
     if (link) {
-      play(connection, message)
+      play(connection, message, args)
     }
-    else { 
+    else {
       connection.disconnect()
     }
   })
@@ -114,13 +129,13 @@ bot.on('message', async (message) => {
 
   if (+message.author.id === +VLAD_ID) {
     if (HelperFunctionsModule.checkSecretWord(message)) {
-        message.delete()
-        message.member.kick(`ты охуел, я не ${SECRET_WORD}-семпай`)
-          .then(() => {
-            console.log('Влад был кикнут.')
-          })
-          .catch(notifyError)
-      }
+      message.delete()
+      message.member.kick(`ты охуел, я не ${SECRET_WORD}-семпай`)
+        .then(() => {
+          console.log('Влад был кикнут.')
+        })
+        .catch(notifyError)
+    }
   } else if (HelperFunctionsModule.checkSecretWord(message)) {
     message.delete()
     console.log(message.member.nickname + ` написал ${SECRET_WORD}-семпай`)
@@ -143,7 +158,7 @@ bot.on('message', async (message) => {
     case '!play':
       message.delete()
       let link = args[1]
-      let repeat = args[2] === 'repeat'
+      let repeat = args[2] === '--repeat'
 
       if (!link) {
         HelperFunctionsModule.sendSelfDestroyMessage(message, 'Необходимо указать ссылку вторым аргументом после "!play"')
@@ -172,7 +187,7 @@ bot.on('message', async (message) => {
       if (link.startsWith(ConstantsModule.BASE_SPOTIFY_URL)) {
         try {
           let spotifyData = await getData('https://open.spotify.com/track/5nTtCOCds6I0PHMNtqelas')
-        } catch(error) {
+        } catch (error) {
           HelperFunctionsModule.notifyError(err)
           return
         }
@@ -190,15 +205,15 @@ bot.on('message', async (message) => {
           server.queue.push(youtubeVideoList[0].link)
 
           if (!message.guild.voiceConnection) {
-            voiceChannel.join().then((connection) => play(connection, message))
+            voiceChannel.join().then((connection) => play(connection, message, args))
           }
         })
-      // CASE: YouTube link 
+        // CASE: YouTube link 
       } else {
         server.queue.push(link)
 
         if (!message.guild.voiceConnection) {
-          voiceChannel.join().then((connection) => play(connection, message))
+          voiceChannel.join().then((connection) => play(connection, message, args))
         }
       }
       break
@@ -237,6 +252,18 @@ bot.on('message', async (message) => {
 
       if (message.guild.connection) message.guild.voiceConnection.disconnect()
       break
+
+    // case '!help':
+    //   HelperFunctionsModule.sendSelfDestroyMessage(
+    //     message,
+    //     `!play <url> *flags* - запускает проигрование аудио из видео, переданным в url \n
+    //     ====== flags: -l | --lyrics - попросить слова песни, в отведенный для этого канал
+    //     !skip - пропустить песню
+    //     !stop - очистить очередь
+    //     мудак - мудак
+    //     `
+    //   )    
+    //   break
 
     case 'vlad':
     case 'pasha':

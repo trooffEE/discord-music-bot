@@ -1,7 +1,10 @@
 const axios = require('axios')
-const { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET } = require('../constants/api');
+const { OAUTH_CLIENT_ID, OAUTH_CLIENT_SECRET, GENIUS_SECRET } = require('../constants/api');
 const { TOKEN_YT } = require('../constants')
 const { google } = require('googleapis')
+
+const jsdom = require("jsdom");
+const { JSDOM } = jsdom;
 
 const { 
   sendSelfDestroyMessage,
@@ -78,6 +81,67 @@ const getPlaylistData = async (playlistId) => {
   }
 }
 
+const geniusGetApi = (endpoint, additionalParams) => {
+  additionalParams = encodeURIComponent(additionalParams);
+  
+  const getPath = 'https://api.genius.com' + endpoint + additionalParams
+  
+  return axios.get(getPath, {
+    headers: {
+      'Authorization': `Bearer ${GENIUS_SECRET}`
+    }
+  })
+}
+
+/**
+ * 
+ * @param { string } title 
+ */
+const _searchForGeniusSongEntries = async (query) => {
+  const response = await geniusGetApi('/search?q=', query)
+  return response.data.response.hits.filter(
+    (entry) => {
+      return entry.type === 'song'
+    }
+  )
+}
+
+const getRawLyrics = async (songURI) => {
+  let html = (await axios.get('https://genius.com' + songURI)).data
+
+  const dom = new JSDOM(html), dataAttributeToSearch = '[data-lyrics-container="true"]'
+  const rootOfLyrics = dom.window.document.querySelector(dataAttributeToSearch)  
+  if (!rootOfLyrics) {
+    return null
+  }
+
+  return rootOfLyrics.innerHTML.replaceAll('<br>', '\n').replace(/<[^>]*>?/gm, '');
+}
+
+const searchForSong = async (query) => {
+  const songs = await _searchForGeniusSongEntries(query)
+
+  // We Assume that first one - is the one that most relevant
+  const ourSong = songs[0]
+  const title = ourSong.result.full_title
+  const thumbnailUrl = ourSong.result.song_art_image_thumbnail_url
+  const releaseDate = ourSong.result.release_date_for_display
+  const language = ourSong.result.language
+
+  const lyricsPageURI = ourSong.result.path
+  const lyricsParsed = await getRawLyrics(lyricsPageURI)
+  const lyrics = lyricsParsed ? lyricsParsed : ourSong.result.url
+  
+  return {
+    title,
+    thumbnailUrl,
+    releaseDate,
+    language,
+    lyrics
+  }
+}
+
 module.exports.getPlaylistData = getPlaylistData
-module.exports.showAlbanianCoronavirus = showAlbanianCoronavirus
 module.exports.showRussianCoronavirus = showRussianCoronavirus
+module.exports.showAlbanianCoronavirus = showAlbanianCoronavirus
+module.exports.searchForSong = searchForSong

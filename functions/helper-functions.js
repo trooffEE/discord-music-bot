@@ -2,6 +2,7 @@ const {
   MUSIC_LOG,
   SECRET_WORD,
 } = require('../constants')
+const { GENIUS_TEXT_CHANNEL } = require('../constants/api')
 
 function notifyError(error) {
   console.log('================================================')
@@ -13,6 +14,12 @@ function sendMusicLogMessage(bot, message) {
   bot.channels.cache
     .get(`${MUSIC_LOG}`)
     .send(message)
+}
+
+function sendMusicLyricsMessage(bot, message, attachment = null) {
+  bot.channels.cache
+    .get(`${GENIUS_TEXT_CHANNEL}`)
+    .send(message, attachment)
 }
 
 function sendMainChatMessage(messageDiscordObject, message, attachment) {
@@ -43,3 +50,4 @@ module.exports.sendMusicLogMessage = sendMusicLogMessage
 module.exports.sendMainChatMessage = sendMainChatMessage
 module.exports.sendSelfDestroyMessage = sendSelfDestroyMessage
 module.exports.checkSecretWord = checkSecretWord
+module.exports.sendMusicLyricsMessage = sendMusicLyricsMessage

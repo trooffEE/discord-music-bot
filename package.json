@@ -10,7 +10,7 @@
     "ffmpeg-static": "^4.2.7",
     "googleapis": "^88.2.0",
     "jquery": "^3.5.1",
-    "jsdom": "^16.4.0",
+    "jsdom": "^16.7.0",
     "node-fetch": "^2.6.1",
     "opusscript": "0.0.7",
     "prism-media": "github:hydrabolt/prism-media",
